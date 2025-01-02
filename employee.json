@@ -1,0 +1,18 @@
+{
+  "employees": [
+    {
+      "firstName": "Sanuja",
+      "lastName": "Patil",
+      "address": "Pune",
+      "mobileNumber": 9009000,
+      "gender": "female"
+    },
+    {
+      "firstName": "Rohit",
+      "lastName": "Sharma",
+      "address": "Mumbai",
+      "mobileNumber": 8008000,
+      "gender": "male"
+    }
+  ]
+}

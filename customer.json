@@ -1,0 +1,22 @@
+{
+  "customers": [
+    {
+      "cust_fName": "Rajesh",
+      "cust_lName": "Patil",
+      "cust_billingAddress": "Pune",
+      "product_Name": "IPhone",
+      "product_price": 199.23,
+      "product_Discount": 10,
+      "product_info": "Iphone 15"
+    },
+    {
+      "cust_fName": "Meera",
+      "cust_lName": "Nair",
+      "cust_billingAddress": "Delhi",
+      "product_Name": "Samsung Galaxy",
+      "product_price": 150.5,
+      "product_Discount": 5,
+      "product_info": "Galaxy S21"
+    }
+  ]
+}
