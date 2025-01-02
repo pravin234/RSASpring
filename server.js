@@ -27,15 +27,13 @@ const writeJSONFile = (filePath, data) => {
   });
 };
 
+// === Employee Routes ===
+
 // GET an employee by ID
 app.get("/employees/id/:id", async (req, res) => {
   try {
-    const { id } = req.params; // Get the ID from the path parameter
-
-    // Read the employee data
+    const { id } = req.params;
     const data = await readJSONFile("employee.json");
-
-    // Find employee by ID
     const employee = data.employees.find((emp) => emp.id == id);
 
     if (employee) {
@@ -60,7 +58,6 @@ app.get("/employees/id/:id", async (req, res) => {
   }
 });
 
-// === Employee Routes ===
 // GET all employees
 app.get("/employees", async (req, res) => {
   try {
@@ -79,23 +76,14 @@ app.get("/employees", async (req, res) => {
   }
 });
 
+// POST a new employee
 app.post("/employees", async (req, res) => {
   try {
     const newEmployee = req.body;
-
-    // Add a unique ID to the new employee (optional for resource tracking)
-    newEmployee.id = Date.now();
-
-    // Read the existing employee data
+    newEmployee.id = Date.now(); // Assign unique ID
     const data = await readJSONFile("employee.json");
-
-    // Add the new employee to the data
     data.employees.push(newEmployee);
-
-    // Write the updated data back to the file
     await writeJSONFile("employee.json", data);
-
-    // Respond with a status code, a message, and the newly created resource
     res.status(201).json({
       status: 201,
       message: "Employee created successfully",
@@ -115,14 +103,11 @@ app.put("/employees/:id", async (req, res) => {
   try {
     const employeeId = parseInt(req.params.id);
     const updatedData = req.body;
-
-    // Read the existing employee data
     const data = await readJSONFile("employee.json");
-
-    // Find the employee to update
     const employeeIndex = data.employees.findIndex(
       (emp) => emp.id === employeeId
     );
+
     if (employeeIndex === -1) {
       return res.status(404).json({
         status: 404,
@@ -131,16 +116,12 @@ app.put("/employees/:id", async (req, res) => {
       });
     }
 
-    // Update the employee details
     data.employees[employeeIndex] = {
       ...data.employees[employeeIndex],
       ...updatedData,
     };
 
-    // Write the updated data back to the file
     await writeJSONFile("employee.json", data);
-
-    // Respond with the updated employee data
     res.status(200).json({
       status: 200,
       message: "Employee updated successfully",
@@ -155,18 +136,15 @@ app.put("/employees/:id", async (req, res) => {
   }
 });
 
-// Route to delete an employee
+// DELETE an employee
 app.delete("/employees/:id", async (req, res) => {
   try {
     const employeeId = parseInt(req.params.id);
-
-    // Read the existing employee data
     const data = await readJSONFile("employee.json");
-
-    // Find and remove the employee
     const employeeIndex = data.employees.findIndex(
       (emp) => emp.id === employeeId
     );
+
     if (employeeIndex === -1) {
       return res.status(404).json({
         status: 404,
@@ -175,13 +153,9 @@ app.delete("/employees/:id", async (req, res) => {
       });
     }
 
-    // Remove the employee from the array
     const deletedEmployee = data.employees.splice(employeeIndex, 1);
-
-    // Write the updated data back to the file
     await writeJSONFile("employee.json", data);
 
-    // Respond with the deleted employee data
     res.status(200).json({
       status: 200,
       message: "Employee deleted successfully",
@@ -197,53 +171,87 @@ app.delete("/employees/:id", async (req, res) => {
 });
 
 // === Customer Routes ===
+
 // GET all customers
 app.get("/customers", async (req, res) => {
   try {
     const data = await readJSONFile("customer.json");
-    res.json(data);
+    res.status(200).json({
+      status: 200,
+      message: "Customers retrieved successfully",
+      data: data.customers,
+    });
   } catch (err) {
-    res.status(500).send("Error reading customer data");
+    res.status(500).json({
+      status: 500,
+      message: "Error reading customer data",
+      error: err.message,
+    });
   }
 });
 
-// POST: Add a new customer
+// GET a customer by ID
+app.get("/customers/id/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = await readJSONFile("customer.json");
+    const customer = data.customers.find((cust) => cust.id == id);
+
+    if (customer) {
+      res.status(200).json({
+        status: 200,
+        message: "Customer retrieved successfully",
+        data: customer,
+      });
+    } else {
+      res.status(404).json({
+        status: 404,
+        message: `Customer with ID ${id} not found.`,
+        data: null,
+      });
+    }
+  } catch (err) {
+    res.status(500).json({
+      status: 500,
+      message: "Error reading customer data",
+      error: err.message,
+    });
+  }
+});
+
+// POST a new customer
 app.post("/customers", async (req, res) => {
   try {
     const newCustomer = req.body;
 
-    // Check if required fields are present in the body
     if (
-      !newCustomer.firstName ||
-      !newCustomer.lastName ||
-      !newCustomer.address
+      !newCustomer.cust_fName ||
+      !newCustomer.cust_lName ||
+      !newCustomer.cust_billingAddress
     ) {
       return res.status(400).json({
+        status: 400,
         message:
-          "Missing required fields: firstName, lastName, and address are required.",
+          "Missing required fields: cust_fName, cust_lName, and cust_billingAddress are required.",
+        data: null,
       });
     }
 
-    // Read current data from the customer.json file
+    newCustomer.id = Date.now(); // Assign unique ID
     const data = await readJSONFile("customer.json");
-
-    // Add the new customer to the customers array
     data.customers.push(newCustomer);
-
-    // Write the updated data back to the file
     await writeJSONFile("customer.json", data);
 
-    // Send a success response with status 201 Created
-    return res.status(201).json({
+    res.status(201).json({
+      status: 201,
       message: "Customer added successfully",
-      customer: newCustomer, // Optionally, include the added customer object in the response
+      data: newCustomer,
     });
   } catch (err) {
-    // Handle unexpected errors and respond with a 500 Internal Server Error
-    console.error("Error adding customer:", err); // Log detailed error
-    return res.status(500).json({
+    res.status(500).json({
+      status: 500,
       message: "Error adding customer",
-      error: err.message || err, // Include error message in response for debugging
+      error: err.message,
     });
   }
 });
@@ -254,17 +262,31 @@ app.put("/customers/:id", async (req, res) => {
     const customerId = parseInt(req.params.id, 10);
     const updatedCustomer = req.body;
     const data = await readJSONFile("customer.json");
-    const index = data.customers.findIndex((cust, idx) => idx === customerId);
+
+    const index = data.customers.findIndex((cust) => cust.id === customerId);
 
     if (index !== -1) {
-      data.customers[index] = updatedCustomer;
+      data.customers[index] = { ...data.customers[index], ...updatedCustomer };
       await writeJSONFile("customer.json", data);
-      res.send("Customer updated successfully");
+
+      res.status(200).json({
+        status: 200,
+        message: "Customer updated successfully",
+        data: data.customers[index],
+      });
     } else {
-      res.status(404).send("Customer not found");
+      res.status(404).json({
+        status: 404,
+        message: "Customer not found",
+        data: null,
+      });
     }
   } catch (err) {
-    res.status(500).send("Error updating customer");
+    res.status(500).json({
+      status: 500,
+      message: "Error updating customer",
+      error: err.message,
+    });
   }
 });
 
@@ -273,21 +295,75 @@ app.delete("/customers/:id", async (req, res) => {
   try {
     const customerId = parseInt(req.params.id, 10);
     const data = await readJSONFile("customer.json");
-    data.customers = data.customers.filter((_, idx) => idx !== customerId);
+
+    const customerIndex = data.customers.findIndex(
+      (cust) => cust.id === customerId
+    );
+
+    if (customerIndex === -1) {
+      return res.status(404).json({
+        status: 404,
+        message: "Customer not found",
+        data: null,
+      });
+    }
+
+    const deletedCustomer = data.customers.splice(customerIndex, 1);
     await writeJSONFile("customer.json", data);
-    res.send("Customer deleted successfully");
+
+    res.status(200).json({
+      status: 200,
+      message: "Customer deleted successfully",
+      data: deletedCustomer[0],
+    });
   } catch (err) {
-    res.status(500).send("Error deleting customer");
+    res.status(500).json({
+      status: 500,
+      message: "Error deleting customer",
+      error: err.message,
+    });
   }
 });
 
-// GET all employees
-app.get("/employees", async (req, res) => {
+// GET customers by search query (search by any field)
+app.get("/customers/search", async (req, res) => {
   try {
-    const data = await readJSONFile("employee.json");
-    res.json(data);
+    const query = req.query; // Accessing query parameters from the URL
+    const data = await readJSONFile("customer.json");
+
+    // Filtering customers based on query parameters
+    const filteredCustomers = data.customers.filter((customer) => {
+      return Object.keys(query).every((key) => {
+        // Check if the key exists in the customer object and compare values
+        if (customer[key]) {
+          return customer[key]
+            .toString()
+            .toLowerCase()
+            .includes(query[key].toLowerCase());
+        }
+        return false;
+      });
+    });
+
+    if (filteredCustomers.length > 0) {
+      res.status(200).json({
+        status: 200,
+        message: "Customers found",
+        data: filteredCustomers,
+      });
+    } else {
+      res.status(404).json({
+        status: 404,
+        message: "No customers match the search criteria.",
+        data: [],
+      });
+    }
   } catch (err) {
-    res.status(500).send("Error reading employee data");
+    res.status(500).json({
+      status: 500,
+      message: "Error searching customers",
+      error: err.message,
+    });
   }
 });
 
